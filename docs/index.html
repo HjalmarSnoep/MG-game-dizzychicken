@@ -251,6 +251,10 @@ function shoot()
       document.body.removeEventListener("click",shoot);
       game.state="shoot";
       game.speed=game.power.getAttributeNS(null, 'height')/5.4;
+    }else
+    {
+      game.state="end";
+      document.getElementById("loose").play();
     }
 }
 function loop()
