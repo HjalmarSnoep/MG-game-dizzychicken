@@ -19,6 +19,7 @@
 </style>
 </head>
 <body>
+  <audio id="music" src="Chicken-Dance.mp3" loop></audio>
   <audio id="points" src="points.wav" loop></audio>
   <audio id="launch" src="launch.wav"></audio>
   <audio id="10pt" src="10-pt.wav"></audio>
@@ -37,6 +38,7 @@ init();
 loop();
 function init()
 {
+  game.noclickyet=true;
    game.state="aiming";
 // make background pattern.
     var angle =  30;
@@ -236,7 +238,13 @@ function shoot()
 {
     if(game.credit>0)
     {
+      console.log("game.noclickyet"+game.noclickyet);
       document.getElementById("launch").play();
+      if(game.noclickyet)
+      {
+        document.getElementById("music").play();
+        game.noclickyet=false;
+      }
       game.credit-=2;
       game.credit_dom.innerHTML="credit: "+game.credit;
       document.body.removeEventListener("click",shoot);
