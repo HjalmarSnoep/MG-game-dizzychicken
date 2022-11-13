@@ -241,7 +241,7 @@ function shoot()
       game.credit_dom.innerHTML="credit: "+game.credit;
       document.body.removeEventListener("click",shoot);
       game.state="shoot";
-      game.speed=game.power.getAttributeNS(null, 'height')/18;
+      game.speed=game.power.getAttributeNS(null, 'height')/5.4;
     }
 }
 function loop()
@@ -278,8 +278,9 @@ function loop()
     break;
     case "shoot":
       game.pos+=game.speed;
-      game.speed*=0.99999;
-      game.speed-=0.0179;
+      if(game.speed>0) game.speed*=0.99;
+      else game.speed*=1.01;
+      game.speed-=0.05;
       if(game.pos>game.track.getTotalLength())
       {
         game.pos=game.track.getTotalLength();
