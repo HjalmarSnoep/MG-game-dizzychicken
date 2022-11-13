@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+<title>Dizzy chicken</title>
+<style>
+  div{
+    font: 30px sans-serif;
+    background-color: rgba(0,0,0,0.5);
+    color: #fff;
+    
+  }
+  html,body,svg{
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwaW5zdHJpcGUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCIgcGF0dGVyblRyYW5zZm9ybT0icm90YXRlKDQ1KSI+PGxpbmUgeDE9IjI1IiB5PSIwIiB4Mj0iMjUiIHkyPSI1MCIgc3Ryb2tlPSJnb2xkZW5yb2QiIHN0cm9rZS13aWR0aD0iMjUiIC8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BpbnN0cmlwZSkiIC8+PC9zdmc");
+    
+</style>
+</head>
+<body>
+  <audio id="points" src="points.wav" loop></audio>
+  <audio id="launch" src="launch.wav"></audio>
+  <audio id="10pt" src="10-pt.wav"></audio>
+  <audio id="30pt" src="30-pt.wav"></audio>
+  <audio id="50pt" src="50-pt.wav"></audio>
+  <audio id="100pt" src="100-pt.wav"></audio>
+  <audio id="500pt" src="500-pt.wav"></audio>
+  <audio id="loose" src="loose.wav"></audio>
+<script>
+var w = 600;
+var h = 600;
+var game={};
+var xmlns = "http://www.w3.org/2000/svg";
+
+init();
+loop();
+function init()
+{
+   game.state="aiming";
+// make background pattern.
+    var angle =  30;
+    var svgString = '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><defs><pattern id="pinstripe" patternUnits="userSpaceOnUse" width="50" height="50" patternTransform="rotate('+angle+')"><line x1="25" y="0" x2="25" y2="50" stroke="goldenrod" stroke-width="25" /></pattern></defs><rect width="100%" height="100%" fill="url(#pinstripe)" /></svg>';
+    var encodedData = window.btoa(svgString);
+    var url = 'data:image/svg+xml;base64,' + encodedData;
+    document.body.style.backgroundImage = "url("+url+")";
+
+// make SVG on page
+    var svgElem = document.createElementNS(xmlns, "svg");
+    svgElem.setAttributeNS(null, "viewBox", "0 0 " + w + " " + h);
+    svgElem.setAttributeNS(null, "width", w);
+    svgElem.setAttributeNS(null, "height", h);
+    svgElem.setAttributeNS(null, "preserveAspectRatio", "xMidYMin meet");
+    svgElem.style.display = "block";
+
+    var d="M 550 500";
+    for(var i=0;i<1200;i+=5)
+    {
+      var rad=i/300*Math.PI;
+      var r=250-i/5;
+      var x=300+Math.cos(rad)*r;
+      var y=300-Math.sin(rad)*r;
+      d+="L"+x+" "+y;
+    }
+
+    var path = document.createElementNS(xmlns, "path");
+    path.setAttributeNS(null, 'd',d);
+    path.setAttributeNS(null, 'fill', "none");
+    path.setAttributeNS(null, 'stroke', "#000");
+    path.setAttributeNS(null, 'stroke-linecap', "round");
+    path.setAttributeNS(null, 'stroke-width', "75");
+    svgElem.appendChild(path);
+
+    d="M 535 500";
+    var total_length=path.getTotalLength();
+    for(var i=total_length/10;i<total_length;i+=total_length/200)
+    {
+      var place_on_path=i;
+      var p=path.getPointAtLength(place_on_path);
+      var p1=path.getPointAtLength(place_on_path+0.01);
+      var p2=path.getPointAtLength(place_on_path-0.01);
+      var dx=p1.x-p2.x;
+      var dy=p1.y-p2.y;
+      var len=Math.sqrt(dx*dx+dy*dy);
+      
+      var x=p.x+15*dy/len;
+      var y=p.y-15*dx/len;
+      d+="L"+x+" "+y;
+
+    }
+    var path = document.createElementNS(xmlns, "path");
+    path.setAttributeNS(null, 'd',d);
+    path.setAttributeNS(null, 'id',"mid");
+    
+    path.setAttributeNS(null, 'fill', "none");
+    path.setAttributeNS(null, 'stroke', "#fff");
+    path.setAttributeNS(null, 'stroke-linecap', "round");
+    path.setAttributeNS(null, 'stroke-width', "40");
+    svgElem.appendChild(path);
+    game.track=path;
+
+    d="M 570 500";
+
+    var total_length=path.getTotalLength();
+    for(var i=0;i<total_length;i+=total_length/300)
+    {
+      var place_on_path=i;
+      var p=path.getPointAtLength(place_on_path);
+      var p1=path.getPointAtLength(place_on_path+0.01);
+      var p2=path.getPointAtLength(place_on_path-0.01);
+      var dx=p1.x-p2.x;
+      var dy=p1.y-p2.y;
+      var len=Math.sqrt(dx*dx+dy*dy);
+      
+      var x=p.x-35*dy/len;
+      var y=p.y+35*dx/len;
+      d+="L"+x+" "+y;
+
+    }
+
+    var path = document.createElementNS(xmlns, "path");
+    path.setAttributeNS(null, 'd',d);
+    path.setAttributeNS(null, 'fill', "none");
+    path.setAttributeNS(null, 'stroke', "#fff");
+    path.setAttributeNS(null, 'stroke-linecap', "round");
+    path.setAttributeNS(null, 'stroke-width', "1");
+    svgElem.appendChild(path);
+
+    game.lampjes=[];
+//  lampjes
+    var total_length=path.getTotalLength();
+
+    for(var i=180;i<total_length-30;i+=total_length/150)
+    {
+      var place_on_path=i;
+      var p=path.getPointAtLength(place_on_path);
+      var x=p.x;
+      var y=p.y;
+      var circle = document.createElementNS(xmlns, "circle");
+      circle.setAttributeNS(null, 'cx',x);
+      circle.setAttributeNS(null, 'cy',y);
+      circle.setAttributeNS(null, 'r',5);
+      circle.setAttributeNS(null, 'fill', "#fff");
+      circle.setAttributeNS(null, 'stroke', "#000");
+      circle.setAttributeNS(null, 'stroke-width', "2");
+      svgElem.appendChild(circle);
+      var cap = document.createElementNS(xmlns, "circle");
+      cap.setAttributeNS(null, 'cx',x);
+      cap.setAttributeNS(null, 'cy',y);
+      cap.setAttributeNS(null, 'r',5);
+      cap.setAttributeNS(null, 'fill', "rgba(0,0,0,0.0)");
+      svgElem.appendChild(cap);
+      game.lampjes.push({track: (i-100)/(total_length-100), el:circle, cap:cap});
+    }
+    var circle = document.createElementNS(xmlns, "circle");
+    svgElem.appendChild(circle);
+      game.ball= circle;
+    circle.setAttributeNS(null, 'cx',x);
+    circle.setAttributeNS(null, 'cy',y);
+    circle.setAttributeNS(null, 'r',19);
+    circle.setAttributeNS(null, 'fill', "#000");
+
+    var rect = document.createElementNS(xmlns, "rect");
+    svgElem.appendChild(rect);
+    rect.setAttributeNS(null, 'x',560);
+    rect.setAttributeNS(null, 'y',491-142);
+    rect.setAttributeNS(null, 'width',22);
+    rect.setAttributeNS(null, 'height',142);
+    rect.setAttributeNS(null, 'stroke', "#fff");
+    
+    game.power = document.createElementNS(xmlns, "rect");
+    svgElem.appendChild(game.power);
+    game.power.setAttributeNS(null, 'x',561);
+    game.power.setAttributeNS(null, 'y',450);
+    game.power.setAttributeNS(null, 'width',20);
+    game.power.setAttributeNS(null, 'height',50);
+    game.power.setAttributeNS(null, 'fill', "#f00");
+    // add svg to body.
+    document.body.appendChild(svgElem);
+    // create score
+    game.credit=50;
+    game.credit_dom=document.createElement("div");
+    game.credit_dom.style.position="fixed";
+    game.credit_dom.style.top="5px";
+    game.credit_dom.style.right="5px";
+    game.credit_dom.innerHTML="credit: "+game.credit;
+    document.body.appendChild(game.credit_dom);
+    // create score
+    game.score=0;
+    game.score_dom=document.createElement("div");
+    game.score_dom.style.position="fixed";
+    game.score_dom.style.top="5px";
+    game.score_dom.style.left="5px";
+    game.score_dom.innerHTML="tickets: "+game.score;
+    document.body.appendChild(game.score_dom);
+
+    legenda=document.createElement("div");
+    legenda.style.position="fixed";
+    legenda.style.bottom="5px";
+    legenda.style.left="5px";
+    legenda.innerHTML="<span style='color: #8ff;'>&#8226;</span> 10<br>";
+    legenda.innerHTML+="<span style='color: #f0f;'>&#8226;</span> 30<br>";
+    legenda.innerHTML+="<span style='color: #ff0;'>&#8226;</span> 50<br>";
+    legenda.innerHTML+="<span style='color: #f80;'>&#8226;</span> 100<br>";
+    legenda.innerHTML+="<span style='color: #0f0;'>&#8226;</span> 500<br>";
+    document.body.appendChild(legenda);
+
+    startAiming();
+}
+function startAiming()
+{
+  document.body.addEventListener("click",shoot);
+  game.pos=0;
+  game.time=0;
+  game.state="aiming";
+  var p=game.track.getPointAtLength(3+game.pos);
+ // console.log(game.track,p,game.ball);
+  game.ball.setAttributeNS(null, 'cx',p.x);
+  game.ball.setAttributeNS(null, 'cy',p.y);
+  
+  game.target=Math.floor(20+50*Math.random());
+  for(var i=0;i<game.lampjes.length;i++)
+  {
+    var color="#8ff";
+    var t=game.target-i;
+    if(t==0) color="#0f0";
+    if(t<6 && t>0) color="#f80";
+    if(t<14 && t>=6) color="#ff0";
+    if(t<24 && t>=14) color="#f0f";
+    game.lampjes[i].el.setAttributeNS(null, 'fill', color);
+    game.lampjes[i].el.setAttributeNS(null, 'stroke', "#000");
+    game.lampjes[i].cap.setAttributeNS(null, 'fill', "rgba(0,0,0,0)");
+  }
+}
+function shoot()
+{
+    if(game.credit>0)
+    {
+      document.getElementById("launch").play();
+      game.credit-=2;
+      game.credit_dom.innerHTML="credit: "+game.credit;
+      document.body.removeEventListener("click",shoot);
+      game.state="shoot";
+      game.speed=game.power.getAttributeNS(null, 'height')/18;
+    }
+}
+function loop()
+{
+  game.time++;
+  switch(game.state)
+  {
+    case "aiming":
+        game.scoring=0;
+        var power=75+65*Math.sin(game.time/60);
+        game.power.setAttributeNS(null, 'x',561);
+        game.power.setAttributeNS(null, 'y',490-power);
+        game.power.setAttributeNS(null, 'width',20);
+        game.power.setAttributeNS(null, 'height',power);
+        game.power.setAttributeNS(null, 'fill', "rgb("+power*3+","+power+",255)");
+    break;
+    case "score":
+          if(game.scoring>0)
+          {
+            game.score++;
+            game.scoring--;
+            game.score_dom.innerHTML="tickets: "+game.score;
+            for(var i=0;i<game.lampjes.length;i++)
+            {
+              var color="rgb("+255*Math.random()+","+255*Math.random()+","+255*Math.random()+")";
+              game.lampjes[i].el.setAttributeNS(null, 'fill', color);
+              game.lampjes[i].cap.setAttributeNS(null, 'fill', "rgba(0,0,0,0)");
+            }
+          }else
+          {
+            document.getElementById("points").pause();
+            startAiming();
+          }
+    break;
+    case "shoot":
+      game.pos+=game.speed;
+      game.speed*=0.99999;
+      game.speed-=0.0179;
+      if(game.pos>game.track.getTotalLength())
+      {
+        game.pos=game.track.getTotalLength();
+        game.speed=-Math.abs(game.speed);
+      }
+      if(game.pos<0)
+      {
+        document.getElementById("points").play();
+        game.state="score";
+      }
+      var p=game.track.getPointAtLength(3+game.pos);
+      game.ball.setAttributeNS(null, 'cx',p.x);
+      game.ball.setAttributeNS(null, 'cy',p.y);
+      p=game.pos/(game.track.getTotalLength())-0.07;
+      if(p>0.7) p=p*1.30-(0.7*0.3);
+      for(var i=0;i<game.lampjes.length;i++)
+      {
+        if(game.lampjes[i].track<p)
+        {
+          if(game.speed>0)
+          {
+            switch(game.lampjes[i].el.getAttributeNS(null, 'fill'))
+            {
+              case "#8ff":
+                if(game.scoring<10)
+                {
+                  game.scoring=10;
+                  if(game.lampjes[game.target].track>=p)
+                  document.getElementById(game.scoring+"pt").play();
+                }else
+                {
+                  if(game.scoring==500)
+                  {
+                    document.getElementById("loose").play();
+                    game.scoring=10;
+                  }
+                }
+
+              break;
+              case "#f0f":
+                if(game.scoring<30)
+                {
+                  game.scoring=30;
+                  if(game.lampjes[game.target].track>=p)
+                  document.getElementById(game.scoring+"pt").play();
+                }
+              break;
+              case "#ff0":
+                if(game.scoring<50)
+                {
+                  game.scoring=50;
+                  if(game.lampjes[game.target].track>=p)
+                  document.getElementById(game.scoring+"pt").play();
+                }
+              break;
+              case "#f80":
+                if(game.scoring<100)
+                {
+                  game.scoring=100;
+                  if(game.lampjes[game.target].track>=p)
+                  document.getElementById(game.scoring+"pt").play();
+                }
+                break;
+              case "#0f0":
+                if(game.scoring<500)
+                {
+                  game.scoring=500;
+                  if(game.lampjes[game.target].track>=p)
+                  document.getElementById(game.scoring+"pt").play();
+                }
+                break;
+            }
+          }
+//          game.lampjes[i].el.setAttributeNS(null, 'stroke', "#fff");
+          game.lampjes[i].cap.setAttributeNS(null, 'fill', "rgba(0,0,0,0.5)");
+        }
+      }
+ //     console.log(p);
+    break;
+  }
+  window.requestAnimationFrame(loop);
+}
+</script>
+</body>
+</html>
