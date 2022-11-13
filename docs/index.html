@@ -218,7 +218,7 @@ function startAiming()
   game.ball.setAttributeNS(null, 'cx',p.x);
   game.ball.setAttributeNS(null, 'cy',p.y);
   
-  game.target=Math.floor(20+50*Math.random());
+  game.target=Math.floor(20+(game.lampjes.length-22)*Math.random());
   for(var i=0;i<game.lampjes.length;i++)
   {
     var color="#8ff";
